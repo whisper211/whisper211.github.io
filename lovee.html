@@ -9,12 +9,86 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", "-apple-system", sans-serif;
+            font-family: "Microsoft YaHei", "Heiti SC", "PingFang SC", sans-serif;
         }
         body {
             overflow: hidden;
             height: 100vh;
         }
+        /* 验证界面样式 */
+        .auth-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1053, #3b2f80);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        .auth-title {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+        .auth-input {
+            padding: 12px 20px;
+            width: 80%;
+            max-width: 300px;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            outline: none;
+        }
+        .auth-btn {
+            padding: 12px 30px;
+            background: #ff6b8b;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255,107,139,0.4);
+        }
+        .auth-btn:hover {
+            background: #ff4a70;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,107,139,0.5);
+        }
+        .auth-error {
+            color: #ff6b6b;
+            margin-top: 15px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        /* 成功提示样式 */
+        .success-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            color: #ffffff;
+            font-size: 48px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff6b8b, 0 0 20px #ff6b8b, 0 0 30px #ff6b8b;
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .success-message.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.2);
+        }
+        /* 星空样式 */
         .starry-sky {
             position: fixed;
             top: 0;
@@ -23,6 +97,7 @@
             height: 100vh;
             z-index: 1;
             overflow: hidden;
+            display: none;
         }
         .sky-bg {
             position: absolute;
@@ -94,16 +169,17 @@
             }
         }
 
+        /* 优化后的弹窗样式 */
         .tip-box {
             position: absolute;
-            padding: 15px 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.3s ease;
+            padding: 18px 24px;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
             z-index: 1000;
-            backdrop-filter: blur(3px);
+            backdrop-filter: blur(5px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -112,14 +188,54 @@
             word-wrap: break-word;
             white-space: normal;
             max-width: 80vw;
+            transform: scale(0.9);
+            opacity: 0;
+            /* 增加进入动画 */
+            animation: popIn 0.6s forwards;
+        }
+        /* 弹窗进入动画 */
+        @keyframes popIn {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            80% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
         .tip-box.fade-out {
             opacity: 0;
-            transform: scale(0.85) translateY(5px);
+            transform: scale(0.85) translateY(10px);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .auth-input.error {
+            border: 2px solid #ff6b6b;
         }
     </style>
 </head>
 <body>
+    <!-- 验证界面 -->
+    <div class="auth-container">
+        <h2 class="auth-title">请输入名字</h2>
+        <input type="text" class="auth-input" placeholder="请输入正确的名字">
+        <button class="auth-btn">验证</button>
+        <div class="auth-error">不认识</div>
+    </div>
+    
+    <!-- 成功提示 -->
+    <div class="success-message">我爱你老婆！</div>
+
+    <!-- 星空界面 -->
     <div class="starry-sky">
         <div class="sky-bg"></div>
         <div class="stars-layer"></div>
@@ -128,13 +244,61 @@
     </div>
 
     <script>
+        // 配置正确的名字
+        const CORRECT_NAME = "杨晗艺";
+        
+        // 获取DOM元素
+        const authContainer = document.querySelector('.auth-container');
+        const authInput = document.querySelector('.auth-input');
+        const authBtn = document.querySelector('.auth-btn');
+        const authError = document.querySelector('.auth-error');
+        const successMessage = document.querySelector('.success-message');
+        const starrySky = document.querySelector('.starry-sky');
+
+        // 验证功能
+        function verifyName() {
+            const inputName = authInput.value.trim();
+            
+            if (inputName === CORRECT_NAME) {
+                authError.style.opacity = 0;
+                authInput.classList.remove('error');
+                successMessage.classList.add('show');
+                
+                setTimeout(() => {
+                    successMessage.classList.remove('show');
+                    authContainer.style.opacity = 0;
+                    setTimeout(() => {
+                        authContainer.style.display = "none";
+                        starrySky.style.display = "block";
+                        initStarrySky();
+                        startTipBoxes();
+                    }, 500);
+                }, 3000);
+            } else {
+                authError.style.opacity = 1;
+                authInput.classList.add('error');
+                authInput.style.animation = "none";
+                setTimeout(() => {
+                    authInput.style.animation = "shake 0.5s";
+                }, 10);
+            }
+        }
+
+        // 绑定事件
+        authBtn.addEventListener('click', verifyName);
+        authInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                verifyName();
+            }
+        });
+
+        // 星空相关代码
         const starsLayer = document.querySelector('.stars-layer');
         const trailsLayer = document.querySelector('.trails-layer');
         const meteorsLayer = document.querySelector('.meteors-layer');
         let screenW = window.innerWidth;
         let screenH = window.innerHeight;
 
-        // 星空相关函数
         function createDistantStars() {
             const count = 300;
             for (let i = 0; i < count; i++) {
@@ -217,17 +381,17 @@
             createMeteors();
         }
 
-        // 弹窗配置 - 融合两个文件的参数优点
+        // 弹窗配置 - 减慢弹出速度
         const config = {
-            total: 150,          // 使用更多弹窗数量
-            spawnInterval: 30,   // 更快的生成速度
-            minLifetime: 3000,   // 保留更短的生命周期范围
-            maxLifetime: 8000,
-            minSize: {w: 120, h: 50},  // 适当增加高度
-            maxSize: {w: 200, h: 70}   // 保留更大的尺寸范围
+            total: 100,          // 减少总数量，避免过于密集
+            spawnInterval: 200,  // 延长生成间隔（从30ms改为200ms）
+            minLifetime: 5000,   // 延长显示时间
+            maxLifetime: 12000,
+            minSize: {w: 140, h: 60},  // 增大最小尺寸
+            maxSize: {w: 220, h: 80}   // 增大最大尺寸
         };
 
-        // 提示文字 - 合并并去重
+        // 提示文字
         const tips = [
             '多喝水哦~', '保持微笑呀', '元气满满！', '记得吃水果',
             '保持好心情', '好好爱自己', '我想你了', '梦想成真',
@@ -241,7 +405,7 @@
             '星光不负赶路人', '睡前记得关手机'
         ];
 
-        // 背景颜色 - 合并两个文件的颜色
+        // 背景颜色
         const bgColors = [
             'rgba(255,209,220,0.9)', 'rgba(176,226,255,0.9)', 
             'rgba(152,251,152,0.9)', 'rgba(221,160,221,0.9)',
@@ -278,10 +442,12 @@
             box.style.top = `${top}px`;
             box.style.backgroundColor = bgColor;
             
-            // 文字颜色自动适配（根据背景亮度）
+            // 文字颜色自动适配
             const rgb = bgColor.match(/\d+/g).slice(0,3).map(Number);
             const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
             box.style.color = brightness > 127 ? 'black' : 'white';
+            // 增强文字效果
+            box.style.textShadow = brightness > 127 ? '0 1px 2px rgba(0,0,0,0.1)' : '0 1px 2px rgba(255,255,255,0.2)';
             
             // 设置文字
             box.textContent = tipText;
@@ -289,30 +455,28 @@
             // 添加到页面
             document.body.appendChild(box);
             
-            // 随机生命周期后自动消失
+            // 自动消失
             const lifetime = Math.random() * (config.maxLifetime - config.minLifetime) + config.minLifetime;
             setTimeout(() => {
                 box.classList.add('fade-out');
-                // 动画结束后移除元素
-                setTimeout(() => box.remove(), 300);
+                setTimeout(() => box.remove(), 500); // 延长动画时间
             }, lifetime);
         }
 
-        // 初始化星空
-        initStarrySky();
+        // 开始生成弹窗
+        function startTipBoxes() {
+            let count = 0;
+            const spawnTimer = setInterval(() => {
+                if (count < config.total) {
+                    createTipBox();
+                    count++;
+                } else {
+                    clearInterval(spawnTimer);
+                }
+            }, config.spawnInterval);
+        }
 
-        // 批量生成弹窗
-        let count = 0;
-        const spawnTimer = setInterval(() => {
-            if (count < config.total) {
-                createTipBox();
-                count++;
-            } else {
-                clearInterval(spawnTimer);
-            }
-        }, config.spawnInterval);
-
-        // 窗口大小变化时重新计算位置
+        // 窗口大小变化适配
         window.addEventListener('resize', () => {
             screenW = window.innerWidth;
             screenH = window.innerHeight;
