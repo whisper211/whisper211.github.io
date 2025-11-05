@@ -3,13 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>星空温馨弹窗</title>
+    <title>爱你🐏儿！</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "-apple-system", "Microsoft YaHei", sans-serif;
+            font-family: "Microsoft YaHei", "-apple-system", sans-serif;
+        }
+        body {
+            overflow: hidden;
+            height: 100vh;
         }
         .starry-sky {
             position: fixed;
@@ -90,25 +94,24 @@
             }
         }
 
-        /* 弹窗优化：解决文字溢出问题 */
         .tip-box {
             position: absolute;
-            padding: 12px 15px; /* 适当增加内边距 */
+            padding: 15px 20px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            font-size: 13px; /* 微调字体大小，适配手机 */
-            font-weight: 600;
+            font-size: 14px;
+            font-weight: bold;
             transition: all 0.3s ease;
             z-index: 1000;
             backdrop-filter: blur(3px);
             display: flex;
             align-items: center;
             justify-content: center;
-            text-align: center; /* 文字居中 */
+            text-align: center;
             overflow: hidden;
-            word-wrap: break-word; /* 强制换行 */
-            white-space: normal; /* 允许多行显示 */
-            max-width: 80vw; /* 限制最大宽度，避免过宽 */
+            word-wrap: break-word;
+            white-space: normal;
+            max-width: 80vw;
         }
         .tip-box.fade-out {
             opacity: 0;
@@ -128,9 +131,10 @@
         const starsLayer = document.querySelector('.stars-layer');
         const trailsLayer = document.querySelector('.trails-layer');
         const meteorsLayer = document.querySelector('.meteors-layer');
-        const screenW = window.innerWidth;
-        const screenH = window.innerHeight;
+        let screenW = window.innerWidth;
+        let screenH = window.innerHeight;
 
+        // 星空相关函数
         function createDistantStars() {
             const count = 300;
             for (let i = 0; i < count; i++) {
@@ -213,72 +217,91 @@
             createMeteors();
         }
 
-        // 弹窗配置优化：调整尺寸适配文字
+        // 弹窗配置 - 融合两个文件的参数优点
         const config = {
-            total: 100,
-            spawnInterval: 50,
-            minLifetime: 4000,
-            maxLifetime: 9000,
-            minSize: {w: 120, h: 50},  // 增加最小高度，容纳换行文字
-            maxSize: {w: 180, h: 70}   // 增加最大高度，避免文字拥挤
+            total: 150,          // 使用更多弹窗数量
+            spawnInterval: 30,   // 更快的生成速度
+            minLifetime: 3000,   // 保留更短的生命周期范围
+            maxLifetime: 8000,
+            minSize: {w: 120, h: 50},  // 适当增加高度
+            maxSize: {w: 200, h: 70}   // 保留更大的尺寸范围
         };
 
-        // 提示文字：避免过长句子，确保换行美观
+        // 提示文字 - 合并并去重
         const tips = [
-            '今晚星空真美~', '抬头看看星星吧', '流星划过要许愿呀',
             '多喝水哦~', '保持微笑呀', '元气满满！', '记得吃水果',
             '保持好心情', '好好爱自己', '我想你了', '梦想成真',
-            '期待见面', '顺顺利利', '早点休息', '烦恼消失',
-            '别熬夜', '今天开心吗', '加油呀', '你很棒', '平安喜乐',
+            '期待见面', '金榜题名', '顺顺利利', '早点休息',
+            '烦恼消失', '别熬夜', '今天开心吗', '多穿衣服',
+            '加油呀', '你很棒', '一切都会好', '平安喜乐',
+            '好运连连', '笑口常开', '天天开心', '全力以赴',
+            '未来可期', '不负韶华', '万事顺意', '心想事成',
+            '今晚星空真美~', '抬头看看星星吧', '流星划过要许愿呀',
             '每天都要开心', '照顾好自己', '天气转凉，添衣保暖',
             '星光不负赶路人', '睡前记得关手机'
         ];
 
+        // 背景颜色 - 合并两个文件的颜色
         const bgColors = [
             'rgba(255,209,220,0.9)', 'rgba(176,226,255,0.9)', 
             'rgba(152,251,152,0.9)', 'rgba(221,160,221,0.9)',
             'rgba(255,250,205,0.9)', 'rgba(255,182,193,0.9)',
-            'rgba(135,206,250,0.9)', 'rgba(240,230,140,0.9)'
+            'rgba(135,206,250,0.9)', 'rgba(144,238,144,0.9)',
+            'rgba(255,160,122,0.9)', 'rgba(240,230,140,0.9)',
+            'rgba(230,230,250,0.9)', 'rgba(255,240,245,0.9)',
+            'rgba(245,255,250,0.9)', 'rgba(250,240,230,0.9)'
         ];
 
+        // 创建单个弹窗
         function createTipBox() {
             const box = document.createElement('div');
             box.className = 'tip-box';
             
-            // 随机尺寸：确保高度足够容纳文字
+            // 随机尺寸
             const width = Math.floor(Math.random() * (config.maxSize.w - config.minSize.w)) + config.minSize.w;
             const height = Math.floor(Math.random() * (config.maxSize.h - config.minSize.h)) + config.minSize.h;
             
+            // 随机位置（确保在屏幕内）
             const maxLeft = screenW - width;
             const maxTop = screenH - height;
             const left = Math.floor(Math.random() * maxLeft);
             const top = Math.floor(Math.random() * maxTop);
             
+            // 随机样式
             const bgColor = bgColors[Math.floor(Math.random() * bgColors.length)];
             const tipText = tips[Math.floor(Math.random() * tips.length)];
             
+            // 设置样式
             box.style.width = `${width}px`;
             box.style.height = `${height}px`;
             box.style.left = `${left}px`;
             box.style.top = `${top}px`;
             box.style.backgroundColor = bgColor;
             
-            // 文字颜色适配
+            // 文字颜色自动适配（根据背景亮度）
             const rgb = bgColor.match(/\d+/g).slice(0,3).map(Number);
             const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
-            box.style.color = brightness > 130 ? '#222' : 'white';
+            box.style.color = brightness > 127 ? 'black' : 'white';
             
+            // 设置文字
             box.textContent = tipText;
+            
+            // 添加到页面
             document.body.appendChild(box);
             
+            // 随机生命周期后自动消失
             const lifetime = Math.random() * (config.maxLifetime - config.minLifetime) + config.minLifetime;
             setTimeout(() => {
                 box.classList.add('fade-out');
+                // 动画结束后移除元素
                 setTimeout(() => box.remove(), 300);
             }, lifetime);
         }
 
+        // 初始化星空
         initStarrySky();
+
+        // 批量生成弹窗
         let count = 0;
         const spawnTimer = setInterval(() => {
             if (count < config.total) {
@@ -289,15 +312,17 @@
             }
         }, config.spawnInterval);
 
+        // 窗口大小变化时重新计算位置
         window.addEventListener('resize', () => {
+            screenW = window.innerWidth;
+            screenH = window.innerHeight;
+            
             const boxes = document.querySelectorAll('.tip-box');
-            const newW = window.innerWidth;
-            const newH = window.innerHeight;
             boxes.forEach(box => {
                 const width = parseInt(box.style.width);
                 const height = parseInt(box.style.height);
-                const maxLeft = newW - width;
-                const maxTop = newH - height;
+                const maxLeft = screenW - width;
+                const maxTop = screenH - height;
                 box.style.left = `${Math.min(parseInt(box.style.left), maxLeft)}px`;
                 box.style.top = `${Math.min(parseInt(box.style.top), maxTop)}px`;
             });
