@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>星空温馨弹窗</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "-apple-system", "Microsoft YaHei", sans-serif;
+        }
+        .starry-sky {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .sky-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0a0529, #111845);
+        }
+        .distant-star {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            animation: twinkle-slow 4s infinite alternate;
+        }
+        .near-star {
+            position: absolute;
+            border-radius: 50%;
+            animation: twinkle-fast 2.5s infinite alternate;
+        }
+        .star-trail {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,0.7), rgba(255,255,255,0));
+            animation: trail-move 18s infinite linear;
+        }
+        .star-trail.fast {
+            animation-duration: 12s;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,230,230,0.8), rgba(255,255,255,0));
+        }
+        .meteor {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,1), rgba(255,255,255,0.3));
+            animation: meteor-fly 1.2s linear forwards;
+            opacity: 0;
+        }
+
+        @keyframes twinkle-slow {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 0.8; transform: scale(1.1); }
+        }
+        @keyframes twinkle-fast {
+            0% { opacity: 0.6; transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1.3); }
+        }
+        @keyframes trail-move {
+            0% { transform: translateX(100vw) rotate(-2deg); }
+            100% { transform: translateX(-100%) rotate(-2deg); }
+        }
+        @keyframes meteor-fly {
+            0% { 
+                transform: translateX(120vw) rotate(-15deg); 
+                opacity: 0;
+                width: 0;
+            }
+            10% { 
+                opacity: 1;
+                width: 150px;
+            }
+            90% { 
+                opacity: 0.8;
+                width: 200px;
+            }
+            100% { 
+                transform: translateX(-40vw) rotate(-15deg); 
+                opacity: 0;
+                width: 220px;
+            }
+        }
+
+        /* 弹窗优化：解决文字溢出问题 */
+        .tip-box {
+            position: absolute;
+            padding: 12px 15px; /* 适当增加内边距 */
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            font-size: 13px; /* 微调字体大小，适配手机 */
+            font-weight: 600;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center; /* 文字居中 */
+            overflow: hidden;
+            word-wrap: break-word; /* 强制换行 */
+            white-space: normal; /* 允许多行显示 */
+            max-width: 80vw; /* 限制最大宽度，避免过宽 */
+        }
+        .tip-box.fade-out {
+            opacity: 0;
+            transform: scale(0.85) translateY(5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="starry-sky">
+        <div class="sky-bg"></div>
+        <div class="stars-layer"></div>
+        <div class="trails-layer"></div>
+        <div class="meteors-layer"></div>
+    </div>
+
+    <script>
+        const starsLayer = document.querySelector('.stars-layer');
+        const trailsLayer = document.querySelector('.trails-layer');
+        const meteorsLayer = document.querySelector('.meteors-layer');
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
+
+        function createDistantStars() {
+            const count = 300;
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'distant-star';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                const size = Math.random() * 1 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.animationDelay = `${Math.random() * 4}s`;
+                starsLayer.appendChild(star);
+            }
+        }
+
+        function createNearStars() {
+            const count = 80;
+            const colors = [
+                'rgba(255, 255, 255, 0.9)',
+                'rgba(200, 230, 255, 0.9)',
+                'rgba(255, 220, 220, 0.85)',
+                'rgba(220, 255, 220, 0.85)'
+            ];
+            for (let i = 0; i < count; i++) {
+                const star = document.createElement('div');
+                star.className = 'near-star';
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.top = `${Math.random() * 100}vh`;
+                const size = Math.random() * 2 + 2;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.background = colors[Math.floor(Math.random() * colors.length)];
+                star.style.animationDelay = `${Math.random() * 3}s`;
+                starsLayer.appendChild(star);
+            }
+        }
+
+        function createStarTrails() {
+            const totalCount = 60;
+            const fastCount = Math.floor(totalCount * 0.3);
+            const slowCount = totalCount - fastCount;
+
+            for (let i = 0; i < slowCount; i++) {
+                createTrail(false);
+            }
+            for (let i = 0; i < fastCount; i++) {
+                createTrail(true);
+            }
+        }
+
+        function createTrail(isFast) {
+            const trail = document.createElement('div');
+            trail.className = `star-trail ${isFast ? 'fast' : ''}`;
+            trail.style.top = `${Math.random() * 70 + 10}vh`;
+            trail.style.left = `${Math.random() * 50 + 100}vw`;
+            const length = isFast ? Math.random() * 120 + 100 : Math.random() * 100 + 80;
+            trail.style.width = `${length}px`;
+            trail.style.animationDelay = `${Math.random() * 20}s`;
+            trailsLayer.appendChild(trail);
+        }
+
+        function createMeteors() {
+            setInterval(() => {
+                const meteor = document.createElement('div');
+                meteor.className = 'meteor';
+                meteor.style.top = `${Math.random() * 40 + 10}vh`;
+                meteor.style.width = '0';
+                meteorsLayer.appendChild(meteor);
+
+                setTimeout(() => {
+                    meteor.remove();
+                }, 1500);
+            }, Math.random() * 5000 + 5000);
+        }
+
+        function initStarrySky() {
+            createDistantStars();
+            createNearStars();
+            createStarTrails();
+            createMeteors();
+        }
+
+        // 弹窗配置优化：调整尺寸适配文字
+        const config = {
+            total: 100,
+            spawnInterval: 50,
+            minLifetime: 4000,
+            maxLifetime: 9000,
+            minSize: {w: 120, h: 50},  // 增加最小高度，容纳换行文字
+            maxSize: {w: 180, h: 70}   // 增加最大高度，避免文字拥挤
+        };
+
+        // 提示文字：避免过长句子，确保换行美观
+        const tips = [
+            '今晚星空真美~', '抬头看看星星吧', '流星划过要许愿呀',
+            '多喝水哦~', '保持微笑呀', '元气满满！', '记得吃水果',
+            '保持好心情', '好好爱自己', '我想你了', '梦想成真',
+            '期待见面', '顺顺利利', '早点休息', '烦恼消失',
+            '别熬夜', '今天开心吗', '加油呀', '你很棒', '平安喜乐',
+            '每天都要开心', '照顾好自己', '天气转凉，添衣保暖',
+            '星光不负赶路人', '睡前记得关手机'
+        ];
+
+        const bgColors = [
+            'rgba(255,209,220,0.9)', 'rgba(176,226,255,0.9)', 
+            'rgba(152,251,152,0.9)', 'rgba(221,160,221,0.9)',
+            'rgba(255,250,205,0.9)', 'rgba(255,182,193,0.9)',
+            'rgba(135,206,250,0.9)', 'rgba(240,230,140,0.9)'
+        ];
+
+        function createTipBox() {
+            const box = document.createElement('div');
+            box.className = 'tip-box';
+            
+            // 随机尺寸：确保高度足够容纳文字
+            const width = Math.floor(Math.random() * (config.maxSize.w - config.minSize.w)) + config.minSize.w;
+            const height = Math.floor(Math.random() * (config.maxSize.h - config.minSize.h)) + config.minSize.h;
+            
+            const maxLeft = screenW - width;
+            const maxTop = screenH - height;
+            const left = Math.floor(Math.random() * maxLeft);
+            const top = Math.floor(Math.random() * maxTop);
+            
+            const bgColor = bgColors[Math.floor(Math.random() * bgColors.length)];
+            const tipText = tips[Math.floor(Math.random() * tips.length)];
+            
+            box.style.width = `${width}px`;
+            box.style.height = `${height}px`;
+            box.style.left = `${left}px`;
+            box.style.top = `${top}px`;
+            box.style.backgroundColor = bgColor;
+            
+            // 文字颜色适配
+            const rgb = bgColor.match(/\d+/g).slice(0,3).map(Number);
+            const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+            box.style.color = brightness > 130 ? '#222' : 'white';
+            
+            box.textContent = tipText;
+            document.body.appendChild(box);
+            
+            const lifetime = Math.random() * (config.maxLifetime - config.minLifetime) + config.minLifetime;
+            setTimeout(() => {
+                box.classList.add('fade-out');
+                setTimeout(() => box.remove(), 300);
+            }, lifetime);
+        }
+
+        initStarrySky();
+        let count = 0;
+        const spawnTimer = setInterval(() => {
+            if (count < config.total) {
+                createTipBox();
+                count++;
+            } else {
+                clearInterval(spawnTimer);
+            }
+        }, config.spawnInterval);
+
+        window.addEventListener('resize', () => {
+            const boxes = document.querySelectorAll('.tip-box');
+            const newW = window.innerWidth;
+            const newH = window.innerHeight;
+            boxes.forEach(box => {
+                const width = parseInt(box.style.width);
+                const height = parseInt(box.style.height);
+                const maxLeft = newW - width;
+                const maxTop = newH - height;
+                box.style.left = `${Math.min(parseInt(box.style.left), maxLeft)}px`;
+                box.style.top = `${Math.min(parseInt(box.style.top), maxTop)}px`;
+            });
+        });
+    </script>
+</body>
+</html>
