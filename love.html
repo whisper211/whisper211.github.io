@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>温馨提示弹窗</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            overflow: hidden;
+            height: 100vh;
+            background: #f5f5f5;
+        }
+        .tip-box {
+            position: absolute;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .tip-box.fade-out {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+    </style>
+</head>
+<body>
+    <script>
+        // 配置参数
+        const config = {
+            total: 150,          // 总弹窗数量
+            spawnInterval: 30,   // 生成间隔（毫秒）
+            minLifetime: 3000,   // 最小生命周期（毫秒）
+            maxLifetime: 8000,   // 最大生命周期（毫秒）
+            minSize: {w: 120, h: 40},  // 最小尺寸
+            maxSize: {w: 200, h: 60}   // 最大尺寸
+        };
+
+        // 提示文字列表
+        const tips = [
+            '多喝水哦~', '保持微笑呀', '元气满满！', '记得吃水果',
+            '保持好心情', '好好爱自己', '我想你了', '梦想成真',
+            '期待见面', '金榜题名', '顺顺利利', '早点休息',
+            '烦恼消失', '别熬夜', '今天开心吗', '多穿衣服',
+            '加油呀', '你很棒', '一切都会好', '平安喜乐',
+            '好运连连', '笑口常开', '天天开心', '全力以赴',
+            '未来可期', '不负韶华', '万事顺意', '心想事成'
+        ];
+
+        // 背景颜色列表（支持透明度）
+        const bgColors = [
+            'rgba(255,209,220,0.9)', 'rgba(176,226,255,0.9)', 
+            'rgba(152,251,152,0.9)', 'rgba(221,160,221,0.9)',
+            'rgba(255,250,205,0.9)', 'rgba(255,182,193,0.9)',
+            'rgba(135,206,250,0.9)', 'rgba(144,238,144,0.9)',
+            'rgba(255,160,122,0.9)', 'rgba(240,230,140,0.9)',
+            'rgba(230,230,250,0.9)', 'rgba(255,240,245,0.9)',
+            'rgba(245,255,250,0.9)', 'rgba(250,240,230,0.9)'
+        ];
+
+        // 创建单个弹窗
+        function createTipBox() {
+            const box = document.createElement('div');
+            box.className = 'tip-box';
+            
+            // 随机尺寸
+            const width = Math.floor(Math.random() * (config.maxSize.w - config.minSize.w)) + config.minSize.w;
+            const height = Math.floor(Math.random() * (config.maxSize.h - config.minSize.h)) + config.minSize.h;
+            
+            // 随机位置（确保在屏幕内）
+            const maxLeft = window.innerWidth - width;
+            const maxTop = window.innerHeight - height;
+            const left = Math.floor(Math.random() * maxLeft);
+            const top = Math.floor(Math.random() * maxTop);
+            
+            // 随机样式
+            const bgColor = bgColors[Math.floor(Math.random() * bgColors.length)];
+            const tipText = tips[Math.floor(Math.random() * tips.length)];
+            
+            // 设置样式
+            box.style.width = `${width}px`;
+            box.style.height = `${height}px`;
+            box.style.left = `${left}px`;
+            box.style.top = `${top}px`;
+            box.style.backgroundColor = bgColor;
+            
+            // 文字颜色自动适配（根据背景亮度）
+            const rgb = bgColor.match(/\d+/g).slice(0,3).map(Number);
+            const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
+            box.style.color = brightness > 127 ? 'black' : 'white';
+            
+            // 设置文字
+            box.textContent = tipText;
+            
+            // 添加到页面
+            document.body.appendChild(box);
+            
+            // 随机生命周期后自动消失
+            const lifetime = Math.random() * (config.maxLifetime - config.minLifetime) + config.minLifetime;
+            setTimeout(() => {
+                box.classList.add('fade-out');
+                // 动画结束后移除元素
+                setTimeout(() => box.remove(), 300);
+            }, lifetime);
+        }
+
+        // 批量生成弹窗
+        let count = 0;
+        const spawnTimer = setInterval(() => {
+            if (count < config.total) {
+                createTipBox();
+                count++;
+            } else {
+                clearInterval(spawnTimer);
+            }
+        }, config.spawnInterval);
+
+        // 窗口大小变化时重新计算位置（适配旋转屏幕）
+        window.addEventListener('resize', () => {
+            const boxes = document.querySelectorAll('.tip-box');
+            boxes.forEach(box => {
+                const width = parseInt(box.style.width);
+                const height = parseInt(box.style.height);
+                const maxLeft = window.innerWidth - width;
+                const maxTop = window.innerHeight - height;
+                box.style.left = `${Math.min(parseInt(box.style.left), maxLeft)}px`;
+                box.style.top = `${Math.min(parseInt(box.style.top), maxTop)}px`;
+            });
+        });
+    </script>
+</body>
+</html>
