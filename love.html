@@ -2,49 +2,111 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>温馨提示弹窗</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
+            font-family: "-apple-system", "BlinkMacSystemFont", "Microsoft YaHei", sans-serif;
         }
         body {
             overflow: hidden;
             height: 100vh;
-            background: #f5f5f5;
+            background: #f8f9fa;
+            touch-action: manipulation; /* 优化触摸体验 */
         }
         .tip-box {
             position: absolute;
             padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
-            font-size: 14px;
-            font-weight: bold;
-            transition: all 0.3s ease;
+            border-radius: 12px; /* 更圆润的边角 */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* 更自然的动画曲线 */
             z-index: 1000;
+            cursor: pointer; /* 提示可点击 */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+        /* 新增入场动画 */
+        .tip-box {
+            animation: popIn 0.3s ease-out forwards;
+            opacity: 0;
+            transform: scale(0.9) translateY(10px);
+        }
+        @keyframes popIn {
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
         }
         .tip-box.fade-out {
             opacity: 0;
-            transform: scale(0.8);
+            transform: scale(0.85);
+        }
+        /* 点击效果 */
+        .tip-box:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        /* 底部操作栏 */
+        .control-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 2000;
+        }
+        .control-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .control-btn:active {
+            transform: scale(0.95);
+        }
+        .control-btn.clear {
+            background: #ff4d4f;
+            color: white;
+        }
+        .control-btn.more {
+            background: #1890ff;
+            color: white;
         }
     </style>
 </head>
 <body>
+    <!-- 新增控制按钮 -->
+    <div class="control-bar">
+        <button class="control-btn clear">清除所有</button>
+        <button class="control-btn more">更多弹窗</button>
+    </div>
+
     <script>
-        // 配置参数
+        // 配置参数（更合理的默认值）
         const config = {
-            total: 150,          // 总弹窗数量
-            spawnInterval: 30,   // 生成间隔（毫秒）
-            minLifetime: 3000,   // 最小生命周期（毫秒）
-            maxLifetime: 8000,   // 最大生命周期（毫秒）
-            minSize: {w: 120, h: 40},  // 最小尺寸
-            maxSize: {w: 200, h: 60}   // 最大尺寸
+            total: 100,          // 初始弹窗数量（减少以避免手机卡顿）
+            spawnInterval: 50,   // 生成间隔（稍慢，提升流畅度）
+            minLifetime: 4000,   // 最小生命周期
+            maxLifetime: 10000,  // 最大生命周期
+            minSize: {w: 100, h: 40},  // 更小的最小尺寸，适合手机
+            maxSize: {w: 180, h: 60}   // 适合手机的最大尺寸
         };
 
-        // 提示文字列表
+        // 扩展提示文字列表
         const tips = [
             '多喝水哦~', '保持微笑呀', '元气满满！', '记得吃水果',
             '保持好心情', '好好爱自己', '我想你了', '梦想成真',
@@ -52,10 +114,12 @@
             '烦恼消失', '别熬夜', '今天开心吗', '多穿衣服',
             '加油呀', '你很棒', '一切都会好', '平安喜乐',
             '好运连连', '笑口常开', '天天开心', '全力以赴',
-            '未来可期', '不负韶华', '万事顺意', '心想事成'
+            '未来可期', '不负韶华', '万事顺意', '心想事成',
+            '被温柔以待', '生活明朗', '万物可爱', '人间值得',
+            '平安健康', '甜度超标', '前程似锦', '不负遇见'
         ];
 
-        // 背景颜色列表（支持透明度）
+        // 扩展背景颜色（增加更多柔和色调）
         const bgColors = [
             'rgba(255,209,220,0.9)', 'rgba(176,226,255,0.9)', 
             'rgba(152,251,152,0.9)', 'rgba(221,160,221,0.9)',
@@ -63,13 +127,19 @@
             'rgba(135,206,250,0.9)', 'rgba(144,238,144,0.9)',
             'rgba(255,160,122,0.9)', 'rgba(240,230,140,0.9)',
             'rgba(230,230,250,0.9)', 'rgba(255,240,245,0.9)',
-            'rgba(245,255,250,0.9)', 'rgba(250,240,230,0.9)'
+            'rgba(245,255,250,0.9)', 'rgba(250,240,230,0.9)',
+            'rgba(255,228,196,0.9)', 'rgba(204,255,204,0.9)',
+            'rgba(204,229,255,0.9)', 'rgba(255,230,255,0.9)'
         ];
+
+        // 存储所有弹窗元素，便于控制
+        const tipBoxes = new Set();
 
         // 创建单个弹窗
         function createTipBox() {
             const box = document.createElement('div');
             box.className = 'tip-box';
+            tipBoxes.add(box);
             
             // 随机尺寸
             const width = Math.floor(Math.random() * (config.maxSize.w - config.minSize.w)) + config.minSize.w;
@@ -92,41 +162,62 @@
             box.style.top = `${top}px`;
             box.style.backgroundColor = bgColor;
             
-            // 文字颜色自动适配（根据背景亮度）
+            // 文字颜色自动适配（优化算法）
             const rgb = bgColor.match(/\d+/g).slice(0,3).map(Number);
             const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
-            box.style.color = brightness > 127 ? 'black' : 'white';
+            box.style.color = brightness > 130 ? 'black' : 'white';
             
             // 设置文字
             box.textContent = tipText;
+            
+            // 添加点击消失功能
+            box.addEventListener('click', () => {
+                box.classList.add('fade-out');
+                setTimeout(() => {
+                    box.remove();
+                    tipBoxes.delete(box);
+                }, 300);
+            });
             
             // 添加到页面
             document.body.appendChild(box);
             
             // 随机生命周期后自动消失
             const lifetime = Math.random() * (config.maxLifetime - config.minLifetime) + config.minLifetime;
-            setTimeout(() => {
+            const timer = setTimeout(() => {
                 box.classList.add('fade-out');
-                // 动画结束后移除元素
-                setTimeout(() => box.remove(), 300);
+                setTimeout(() => {
+                    box.remove();
+                    tipBoxes.delete(box);
+                }, 300);
             }, lifetime);
+            
+            // 存储定时器，便于清除
+            box.timer = timer;
         }
 
         // 批量生成弹窗
         let count = 0;
-        const spawnTimer = setInterval(() => {
-            if (count < config.total) {
-                createTipBox();
-                count++;
-            } else {
-                clearInterval(spawnTimer);
-            }
-        }, config.spawnInterval);
+        let spawnTimer;
+        
+        function startSpawning(limit = config.total) {
+            clearInterval(spawnTimer);
+            spawnTimer = setInterval(() => {
+                if (count < limit && tipBoxes.size < 150) { // 限制最大同时存在数量
+                    createTipBox();
+                    count++;
+                } else {
+                    clearInterval(spawnTimer);
+                }
+            }, config.spawnInterval);
+        }
+        
+        // 初始生成
+        startSpawning();
 
-        // 窗口大小变化时重新计算位置（适配旋转屏幕）
+        // 窗口大小变化时重新计算位置
         window.addEventListener('resize', () => {
-            const boxes = document.querySelectorAll('.tip-box');
-            boxes.forEach(box => {
+            tipBoxes.forEach(box => {
                 const width = parseInt(box.style.width);
                 const height = parseInt(box.style.height);
                 const maxLeft = window.innerWidth - width;
@@ -134,6 +225,25 @@
                 box.style.left = `${Math.min(parseInt(box.style.left), maxLeft)}px`;
                 box.style.top = `${Math.min(parseInt(box.style.top), maxTop)}px`;
             });
+        });
+
+        // 控制按钮功能
+        document.querySelector('.clear').addEventListener('click', () => {
+            tipBoxes.forEach(box => {
+                clearTimeout(box.timer); // 清除自动消失定时器
+                box.classList.add('fade-out');
+                setTimeout(() => {
+                    box.remove();
+                    tipBoxes.delete(box);
+                }, 300);
+            });
+            count = 0; // 重置计数
+            clearInterval(spawnTimer);
+        });
+
+        document.querySelector('.more').addEventListener('click', () => {
+            // 每次点击增加50个弹窗
+            startSpawning(count + 50);
         });
     </script>
 </body>
