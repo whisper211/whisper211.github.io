@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: "Microsoft YaHei", "Heiti SC", "PingFang SC", sans-serif;
+            font-family: "Microsoft YaHei", "-apple-system", sans-serif;
         }
         body {
             overflow: hidden;
@@ -70,25 +70,26 @@
             opacity: 0;
             transition: opacity 0.3s ease;
         }
-        /* 成功提示样式 */
+        /* 成功提示样式 - 增强显示效果 */
         .success-message {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.8);
             color: #ffffff;
-            font-size: 48px;
+            font-size: 36px;
             font-weight: bold;
             text-shadow: 0 0 10px #ff6b8b, 0 0 20px #ff6b8b, 0 0 30px #ff6b8b;
-            z-index: 9999;
+            z-index: 9999; /* 确保在最上层 */
             opacity: 0;
             transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        /* 显示成功消息的类 */
         .success-message.show {
             opacity: 1;
             transform: translate(-50%, -50%) scale(1.2);
         }
-        /* 星空样式 */
+        /* 星空和弹窗样式保持不变 */
         .starry-sky {
             position: fixed;
             top: 0;
@@ -97,7 +98,7 @@
             height: 100vh;
             z-index: 1;
             overflow: hidden;
-            display: none;
+            display: none; /* 初始隐藏 */
         }
         .sky-bg {
             position: absolute;
@@ -169,17 +170,16 @@
             }
         }
 
-        /* 优化后的弹窗样式 */
         .tip-box {
             position: absolute;
-            padding: 18px 24px;
-            border-radius: 12px;
-            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.5s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
             z-index: 1000;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(3px);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -188,29 +188,10 @@
             word-wrap: break-word;
             white-space: normal;
             max-width: 80vw;
-            transform: scale(0.9);
-            opacity: 0;
-            /* 增加进入动画 */
-            animation: popIn 0.6s forwards;
-        }
-        /* 弹窗进入动画 */
-        @keyframes popIn {
-            0% {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-            80% {
-                transform: scale(1.05);
-                opacity: 1;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
         }
         .tip-box.fade-out {
             opacity: 0;
-            transform: scale(0.85) translateY(10px);
+            transform: scale(0.85) translateY(5px);
         }
 
         @keyframes shake {
@@ -229,10 +210,10 @@
         <h2 class="auth-title">请输入名字</h2>
         <input type="text" class="auth-input" placeholder="请输入正确的名字">
         <button class="auth-btn">验证</button>
-        <div class="auth-error">不认识</div>
+        <div class="auth-error">名字不正确，请重新输入</div>
     </div>
     
-    <!-- 成功提示 -->
+    <!-- 成功提示 - 确保在DOM中存在 -->
     <div class="success-message">我爱你老婆！</div>
 
     <!-- 星空界面 -->
@@ -245,7 +226,7 @@
 
     <script>
         // 配置正确的名字
-        const CORRECT_NAME = "杨晗艺";
+        const CORRECT_NAME = "杨晗艺"; // 请输入正确的验证名字
         
         // 获取DOM元素
         const authContainer = document.querySelector('.auth-container');
@@ -260,21 +241,30 @@
             const inputName = authInput.value.trim();
             
             if (inputName === CORRECT_NAME) {
+                // 验证成功
                 authError.style.opacity = 0;
                 authInput.classList.remove('error');
+                
+                // 显示成功消息（关键修复：添加show类）
                 successMessage.classList.add('show');
                 
+                // 3秒后隐藏验证界面和成功消息，显示星空
                 setTimeout(() => {
+                    // 隐藏成功消息
                     successMessage.classList.remove('show');
+                    
+                    // 隐藏验证界面
                     authContainer.style.opacity = 0;
                     setTimeout(() => {
                         authContainer.style.display = "none";
+                        // 显示星空并初始化
                         starrySky.style.display = "block";
                         initStarrySky();
                         startTipBoxes();
                     }, 500);
-                }, 3000);
+                }, 3000); // 延长显示时间到3秒，确保能看清
             } else {
+                // 验证失败
                 authError.style.opacity = 1;
                 authInput.classList.add('error');
                 authInput.style.animation = "none";
@@ -381,14 +371,14 @@
             createMeteors();
         }
 
-        // 弹窗配置 - 减慢弹出速度
+        // 弹窗配置
         const config = {
-            total: 100,          // 减少总数量，避免过于密集
-            spawnInterval: 200,  // 延长生成间隔（从30ms改为200ms）
-            minLifetime: 5000,   // 延长显示时间
-            maxLifetime: 12000,
-            minSize: {w: 140, h: 60},  // 增大最小尺寸
-            maxSize: {w: 220, h: 80}   // 增大最大尺寸
+            total: 150,          
+            spawnInterval: 30,   
+            minLifetime: 3000,   
+            maxLifetime: 8000,
+            minSize: {w: 120, h: 50},  
+            maxSize: {w: 200, h: 70}   
         };
 
         // 提示文字
@@ -446,8 +436,6 @@
             const rgb = bgColor.match(/\d+/g).slice(0,3).map(Number);
             const brightness = (rgb[0] * 299 + rgb[1] * 587 + rgb[2] * 114) / 1000;
             box.style.color = brightness > 127 ? 'black' : 'white';
-            // 增强文字效果
-            box.style.textShadow = brightness > 127 ? '0 1px 2px rgba(0,0,0,0.1)' : '0 1px 2px rgba(255,255,255,0.2)';
             
             // 设置文字
             box.textContent = tipText;
@@ -459,7 +447,7 @@
             const lifetime = Math.random() * (config.maxLifetime - config.minLifetime) + config.minLifetime;
             setTimeout(() => {
                 box.classList.add('fade-out');
-                setTimeout(() => box.remove(), 500); // 延长动画时间
+                setTimeout(() => box.remove(), 300);
             }, lifetime);
         }
 
